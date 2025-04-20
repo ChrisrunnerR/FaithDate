@@ -15,118 +15,140 @@ enum RectCorner {
 }
 
 struct ContentView: View {
+    // Access the shared ViewModel from the environment
+    @EnvironmentObject var authViewModel: AuthenticationViewModel
+
     var body: some View {
+        // NavigationView provides the navigation context
         NavigationView {
-            ZStack {
-                // Background color for entire screen
-                Color.blue.opacity(0.1)
-                    .edgesIgnoringSafeArea(.all)
-                
-                VStack(spacing: 0) {
-                    // Top part with logo and image
-                    VStack(spacing: 20) {
-                        Text("FaithDate")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .padding(.top, 60)
+            // Conditionally display view based on sign-in state
+            if authViewModel.isUserSignedIn {
+                // User is signed in - show the main signed-in view
+                SignedInView()
+            } else {
+                // User is not signed in - show the onboarding/initial view
+                OnboardingView()
+            }
+        }
+        // Apply the environment object modifier here if you hadn't done it in the App struct,
+        // but since we did it in FaithDateApp, this isn't strictly needed again.
+        // .environmentObject(authViewModel) 
+    }
+}
+
+// Extracted the original onboarding content into its own view struct
+struct OnboardingView: View {
+    var body: some View {
+        ZStack {
+            // Background color for entire screen
+            Color.blue.opacity(0.1)
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack(spacing: 0) {
+                // Top part with logo and image
+                VStack(spacing: 20) {
+                    Text("FaithDate")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding(.top, 60)
+                    
+                    // Simple circle with one main image - as requested
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue.opacity(0.3))
+                            .frame(width: 280, height: 280)
                         
-                        // Simple circle with one main image - as requested
-                        ZStack {
-                            Circle()
-                                .fill(Color.blue.opacity(0.3))
-                                .frame(width: 280, height: 280)
+                        // Using the image from App/images folder
+                        Image("chilling")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 240, height: 240)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white, lineWidth: 4)
+                            )
+                        
+                        // Category Pills positioned around the circle
+                        VStack {
+                            HStack {
+                                Spacer()
+                                CategoryPill(text: "Friends", icon: "heart.fill", color: .yellow)
+                                    .offset(x: -20, y: -80)
+                            }
                             
-                            // Using the image from App/images folder
-                            Image("chilling")
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 240, height: 240)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.white, lineWidth: 4)
-                                )
+                            HStack {
+                                CategoryPill(text: "Relationship", icon: "heart.fill", color: .red)
+                                    .offset(x: 0, y: -20)
+                                Spacer()
+                            }
                             
-                            // Category Pills positioned around the circle
-        VStack {
-                                HStack {
-                                    Spacer()
-                                    CategoryPill(text: "Friends", icon: "heart.fill", color: .yellow)
-                                        .offset(x: -20, y: -80)
-                                }
-                                
-                                HStack {
-                                    CategoryPill(text: "Relationship", icon: "heart.fill", color: .red)
-                                        .offset(x: 0, y: -20)
-                                    Spacer()
-                                }
-                                
-                                HStack {
-                                    Spacer()
-                                    CategoryPill(text: "Short-term Fun", icon: "star.fill", color: .orange)
-                                        .offset(x: -10, y: 20)
-                                }
-                                
-                                HStack {
-                                    CategoryPill(text: "Chats", icon: "bubble.left.fill", color: .white)
-                                        .offset(x: 40, y: 60)
-                                    Spacer()
-                                }
+                            HStack {
+                                Spacer()
+                                CategoryPill(text: "Short-term Fun", icon: "star.fill", color: .orange)
+                                    .offset(x: -10, y: 20)
+                            }
+                            
+                            HStack {
+                                CategoryPill(text: "Chats", icon: "bubble.left.fill", color: .white)
+                                    .offset(x: 40, y: 60)
+                                Spacer()
                             }
                         }
-                        .padding(.horizontal)
-                        .padding(.bottom, 30)
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 30)
+                }
+                
+                // Bottom part with text and button - full width container
+                VStack(spacing: 25) {
+                    Spacer()
+                    
+                    VStack(spacing: 10) {
+                        Text("Your ideal match, Your")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Text("ideal relationship.")
+                            .font(.title2)
+                            .fontWeight(.bold)
                     }
                     
-                    // Bottom part with text and button - full width container
-                    VStack(spacing: 25) {
-                        Spacer()
-                        
-                        VStack(spacing: 10) {
-                            Text("Your ideal match, Your")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                    Text("Create a unique emotional story that describes better than words")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                    
+                    // NavigationLink now goes to LoginView
+                    NavigationLink(destination: LoginView()) {
+                        HStack {
+                            Text("Get Started")
+                                .fontWeight(.semibold)
                             
-                            Text("ideal relationship.")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote)
                         }
-                        
-                        Text("Create a unique emotional story that describes better than words")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        
-                        NavigationLink(destination: LoginView()) {
-                            HStack {
-                                Text("Get Started")
-                                    .fontWeight(.semibold)
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.footnote)
-                            }
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.yellow)
-                            .cornerRadius(30)
-                            .padding(.horizontal, 40)
-                        }
-                        
-                        Spacer()
-                        // Add extra spacer to push content up
-                        Spacer()
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.yellow)
+                        .cornerRadius(30)
+                        .padding(.horizontal, 40)
                     }
-                    .padding(.top, 40)
-                    .background(Color.white)
-                    .clipShape(CustomCorners(corners: [.topLeft, .topRight], radius: 30))
-                    .edgesIgnoringSafeArea(.bottom) // Extend to bottom of screen
+                    
+                    Spacer()
+                    // Add extra spacer to push content up
+                    Spacer()
                 }
-                .edgesIgnoringSafeArea(.bottom)
+                .padding(.top, 40)
+                .background(Color.white)
+                .clipShape(CustomCorners(corners: [.topLeft, .topRight], radius: 30))
+                .edgesIgnoringSafeArea(.bottom) // Extend to bottom of screen
             }
-            .navigationBarBackButtonHidden(true)
+            .edgesIgnoringSafeArea(.bottom)
         }
+        .navigationBarHidden(true) // Hide navigation bar for the onboarding view itself
     }
 }
 
@@ -228,10 +250,11 @@ struct CustomCorners: Shape {
     }
 }
 
-// Login view with full-width container and only top rounded corners
+// Login view modifications needed next (changing StateObject to EnvironmentObject)
 struct LoginView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = AuthenticationViewModel() // Inject ViewModel
+    // @StateObject private var viewModel = AuthenticationViewModel() // REMOVE THIS
+    @EnvironmentObject var viewModel: AuthenticationViewModel // ADD THIS
 
     var body: some View {
         GeometryReader { geometry in
@@ -297,8 +320,6 @@ struct LoginView: View {
                                 }
                             } label: { // Use label for button content
                                 HStack {
-                                    // It's generally better to use an actual Google icon if available
-                                    // For now, keeping the system icon
                                     Image(systemName: "g.circle.fill")
                                         .font(.system(size: 16))
                                     
@@ -335,29 +356,27 @@ struct LoginView: View {
                             }
                             .padding(.bottom, 30)
                         }
-                        // NavigationLink to SignedInView, activated by isUserSignedIn
-                        // Place it *outside* the button VStack but *inside* the main content VStack
-                        // Use ZStack with opacity 0 to make it non-visual but functional
-                         ZStack {
-                            NavigationLink(
-                                destination: SignedInView(),
-                                isActive: $viewModel.isUserSignedIn,
-                                label: { EmptyView() }
-                            )
-                        }
-                        .frame(width: 0, height: 0) // Ensure it takes no space
-                        .opacity(0) // Make it invisible
+                        // NavigationLink to SignedInView - THIS IS NO LONGER NEEDED HERE
+                        // The navigation is handled by the root ContentView based on state
+//                         ZStack {
+//                            NavigationLink(
+//                                destination: SignedInView(),
+//                                isActive: $viewModel.isUserSignedIn,
+//                                label: { EmptyView() }
+//                            )
+//                        }
+//                        .frame(width: 0, height: 0)
+//                        .opacity(0)
                     }
                     .background(Color.white)
-                    .clipShape(CustomCorners(corners: [.topLeft, .topRight], radius: 30)) // Only round the top corners
-                    .ignoresSafeArea(edges: .bottom) // Make sure container extends to bottom
+                    .clipShape(CustomCorners(corners: [.topLeft, .topRight], radius: 30))
+                    .ignoresSafeArea(edges: .bottom)
                 }
                 .edgesIgnoringSafeArea(.bottom)
             }
-            // Alert to show sign-in errors
             .alert("Sign-In Error", isPresented: .constant(viewModel.errorMessage != nil), presenting: viewModel.errorMessage) { _ in
                  Button("OK") {
-                    viewModel.errorMessage = nil // Dismiss the error
+                    viewModel.errorMessage = nil
                  }
             } message: { message in
                  Text(message)
@@ -366,18 +385,20 @@ struct LoginView: View {
         .navigationBarBackButtonHidden(true)
         .ignoresSafeArea()
         .gesture(DragGesture().onEnded { gesture in
-             // Allow swipe back only if not signed in
-            if !viewModel.isUserSignedIn && gesture.translation.width > 100 {
+            // Allow swipe back - LoginView should always be dismissable this way
+            if gesture.translation.width > 100 {
                  self.presentationMode.wrappedValue.dismiss()
             }
          })
-        // Add onAppear to check user status when view appears (optional but good practice)
-        .onAppear {
-            viewModel.checkCurrentUser()
-        }
+        // REMOVE the onAppear check - parent handles initial state
+//        .onAppear {
+//            viewModel.checkCurrentUser()
+//        }
     }
 }
 
 #Preview {
+    // Preview needs the environment object too now
     ContentView()
+        .environmentObject(AuthenticationViewModel())
 }

@@ -1,5 +1,5 @@
 //
-//  AppApp.swift
+//  FaithDateApp.swift
 //  App
 //
 //  Created by MacBook on 4/17/25.
@@ -18,13 +18,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 }
 
 @main
-struct AppApp: App {
+struct FaithDateApp: App {
     // register app delegate for Firebase setup
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject private var authViewModel = AuthenticationViewModel()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(authViewModel)
         }
     }
 }
