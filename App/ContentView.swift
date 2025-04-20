@@ -231,7 +231,8 @@ struct CustomCorners: Shape {
 // Login view with full-width container and only top rounded corners
 struct LoginView: View {
     @Environment(\.presentationMode) var presentationMode
-    
+    @StateObject private var viewModel = AuthenticationViewModel() // Inject ViewModel
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -273,7 +274,7 @@ struct LoginView: View {
                         // Buttons with rounded corners
                         VStack(spacing: 12) {
                             // Apple button
-                            Button(action: {}) {
+                            Button(action: {}) { // Placeholder action
                                 HStack {
                                     Image(systemName: "apple.logo")
                                         .font(.system(size: 16))
@@ -290,8 +291,14 @@ struct LoginView: View {
                             }
                             
                             // Google button
-                            Button(action: {}) {
+                            Button {
+                                Task {
+                                    await viewModel.signInWithGoogle() // Call ViewModel sign-in method
+                                }
+                            } label: { // Use label for button content
                                 HStack {
+                                    // It's generally better to use an actual Google icon if available
+                                    // For now, keeping the system icon
                                     Image(systemName: "g.circle.fill")
                                         .font(.system(size: 16))
                                     
@@ -307,11 +314,11 @@ struct LoginView: View {
                                     RoundedRectangle(cornerRadius: 27.5)
                                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                                 )
-                                .padding(.horizontal, 25)
                             }
+                            .padding(.horizontal, 25) // Apply padding to the button itself
                             
                             // Phone button
-                            Button(action: {}) {
+                            Button(action: {}) { // Placeholder action
                                 HStack {
                                     Image(systemName: "iphone")
                                         .font(.system(size: 16))
@@ -328,6 +335,18 @@ struct LoginView: View {
                             }
                             .padding(.bottom, 30)
                         }
+                        // NavigationLink to SignedInView, activated by isUserSignedIn
+                        // Place it *outside* the button VStack but *inside* the main content VStack
+                        // Use ZStack with opacity 0 to make it non-visual but functional
+                         ZStack {
+                            NavigationLink(
+                                destination: SignedInView(),
+                                isActive: $viewModel.isUserSignedIn,
+                                label: { EmptyView() }
+                            )
+                        }
+                        .frame(width: 0, height: 0) // Ensure it takes no space
+                        .opacity(0) // Make it invisible
                     }
                     .background(Color.white)
                     .clipShape(CustomCorners(corners: [.topLeft, .topRight], radius: 30)) // Only round the top corners
@@ -335,14 +354,27 @@ struct LoginView: View {
                 }
                 .edgesIgnoringSafeArea(.bottom)
             }
+            // Alert to show sign-in errors
+            .alert("Sign-In Error", isPresented: .constant(viewModel.errorMessage != nil), presenting: viewModel.errorMessage) { _ in
+                 Button("OK") {
+                    viewModel.errorMessage = nil // Dismiss the error
+                 }
+            } message: { message in
+                 Text(message)
+            }
         }
         .navigationBarBackButtonHidden(true)
         .ignoresSafeArea()
         .gesture(DragGesture().onEnded { gesture in
-            if gesture.translation.width > 100 {
-                self.presentationMode.wrappedValue.dismiss()
+             // Allow swipe back only if not signed in
+            if !viewModel.isUserSignedIn && gesture.translation.width > 100 {
+                 self.presentationMode.wrappedValue.dismiss()
             }
-        })
+         })
+        // Add onAppear to check user status when view appears (optional but good practice)
+        .onAppear {
+            viewModel.checkCurrentUser()
+        }
     }
 }
 
